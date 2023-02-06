@@ -108,6 +108,101 @@ describe('getUID', function () {
     });
 });
 
+describe('check_url_match_pattern', function () {
+    const missions_links = [
+        '*://*.ingress.com/mission/*',
+
+        'http://*.ingress.com/mission/*',
+        'http://www.ingress.com/mission/*',
+
+        'https://*.ingress.com/mission/*',
+        'https://missions.ingress.com/*',
+        'https://www.ingress.com/mission/*',
+    ];
+
+    const intel_links = [
+        '*://*.ingress.com/*',
+        '*://*.ingress.com/intel*',
+        '*://intel.ingress.com/*',
+
+        'http://*.ingress.com/*',
+        'http://*.ingress.com/intel*',
+        'http://*ingress.com/intel*',
+        'http://ingress.com/intel*',
+        'http://www.ingress.com/intel*',
+
+        'https://*.ingress.com/*',
+        'https://*.ingress.com/intel*',
+        'https://ingress.com/intel',
+        'https://ingress.com/intel*',
+        'https://intel.ingress.com',
+        'https://intel.ingress.com/*',
+        'https://intel.ingress.com/intel',
+        'https://www.ingress.com/intel*',
+
+        '/^https://ingress.com/intel.*/',
+        '/^https://www.ingress.com/intel.*/',
+        '/^https:\\/\\/.*ingress\\.com\\/intel.*/',
+        '/^https:\\/\\/ingress\\.com\\/intel.*/',
+        '/^https?:\\/\\/.*ingress\\.com\\/intel.*/',
+        '/^https?:\\/\\/intel.ingress\\.com.*/',
+    ];
+
+    describe('match missions.ingress.com - valid', function () {
+        for (const url of missions_links) {
+            it(url, function () {
+                expect(helpers.check_url_match_pattern(url, 'missions.ingress.com')).to.be.true;
+            });
+        }
+    });
+
+    describe('match missions.ingress.com - not valid', function () {
+        for (const url of intel_links) {
+            it(url, function () {
+                expect(helpers.check_url_match_pattern(url, 'missions.ingress.com')).to.be.false;
+            });
+        }
+    });
+
+    describe('match intel.ingress.com - valid', function () {
+        for (const url of intel_links) {
+            it(url, function () {
+                expect(helpers.check_url_match_pattern(url, 'intel.ingress.com')).to.be.true;
+            });
+        }
+    });
+
+    describe('match intel.ingress.com - not valid', function () {
+        for (const url of missions_links) {
+            it(url, function () {
+                expect(helpers.check_url_match_pattern(url, 'intel.ingress.com')).to.be.false;
+            });
+        }
+    });
+});
+
+describe('check_meta_match_pattern', function () {
+    describe('domain = <all>', function () {
+        it('variant 1', function () {
+            expect(helpers.check_meta_match_pattern({ match: ['http://ingress.com'] }, '<all>')).to.be.true;
+        });
+
+        it('variant 2', function () {
+            expect(helpers.check_meta_match_pattern({ match: ['http://ingress.com', 'https://ingress.com/intel'] }, '<all>')).to.be.true;
+        });
+    });
+
+    describe('domain = intel.ingress.com', function () {
+        it('variant 1', function () {
+            expect(helpers.check_meta_match_pattern({ match: ['https://missions.ingress.com'] }, 'intel.ingress.com')).to.be.false;
+        });
+
+        it('variant 2', function () {
+            expect(helpers.check_meta_match_pattern({ match: ['http://ingress.com', 'https://ingress.com/intel'] }, 'intel.ingress.com')).to.be.true;
+        });
+    });
+});
+
 describe('wait', function () {
     it('timer works', async function () {
         let time = performance.now();

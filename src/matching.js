@@ -4,56 +4,20 @@ const CACHE = {};
 const RE_URL = /(.*?):\/\/([^/]*)\/(.*)/;
 
 /**
- * Checks if the accepted URL matches one or all domains related to Ingress.
- *
- * @param {string} url - URL address.
- * @param {"<all>" | "intel.ingress.com" | "missions.ingress.com"} [domain="<all>"] domain - One or all domains related to Ingress.
- * @return {boolean}
- */
-export function check_ingress_matching(url, domain) {
-    if (url.startsWith('/^')) {
-        url = url
-            .replace(/\/\^|\?/g, '')
-            .replace(/\\\//g, '/')
-            .replace(/\.\*/g, '*')
-            .replace(/\\\./g, '.');
-    }
-
-    if (
-        (/^(http|https|\*):\/\/(www|\*)\.ingress\.com\/mission*/.test(url) || /^(http|https|\*):\/\/missions\.ingress\.com\/*/.test(url)) &&
-        (domain === '<all>' || domain === 'missions.ingress.com')
-    ) {
-        return true;
-    }
-
-    if (
-        (/^(http|https|\*):\/\/(www\.|\*\.|\*|)ingress\.com(?!.*\/mission*)/.test(url) || /^(http|https|\*):\/\/intel\.ingress\.com*/.test(url)) &&
-        (domain === '<all>' || domain === 'intel.ingress.com')
-    ) {
-        return true;
-    }
-
-    return false;
-}
-
-/**
+ * Checks the URL for match/include plugin.
  *
  * @param {plugin} meta - Object with data from ==UserScript== header.
- * @param {string} [url="<all_ingress>"] url - Page URL.
+ * @param {string} url - Page URL.
  * @return {boolean}
  */
-export function check_matching(meta, url = '<all_ingress>') {
+export function check_matching(meta, url) {
     const match = meta.match || [];
     const include = meta.include || [];
     const match_exclude = meta['exclude-match'] || [];
     const exclude = meta.exclude || [];
 
     // match all if no @match or @include rule and not all ingress domains
-    let ok = !match.length && !include.length && url !== '<all_ingress>';
-    // Any Ingress domain (intel.ingress.com, missions.ingress.com)
-    ok = ok || match.some((url) => check_ingress_matching(url, '<all>'));
-    ok = ok || include.some((url) => check_ingress_matching(url, '<all>'));
-    if (url === '<all_ingress>') return ok;
+    let ok = !match.length && !include.length;
     // @match
     ok = ok || testMatch(url, match);
     // @include
