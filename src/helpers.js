@@ -1,5 +1,7 @@
 // @license magnet:?xt=urn:btih:1f739d935676111cfff4b4693e3816e664797050&dn=gpl-3.0.txt GPL-v3
 
+import { check_ingress_matching } from './matching.js';
+
 export let wait_timeout_id = null;
 
 const METABLOCK_RE_HEADER = /==UserScript==\s*([\s\S]*)\/\/\s*==\/UserScript==/m; // Note: \s\S to match linebreaks
@@ -125,34 +127,13 @@ export function getUID(plugin) {
 /**
  * Checks if the accepted URL matches one or all domains related to Ingress.
  *
+ * @deprecated since version 1.5.0. Use {@link check_ingress_matching} instead.
  * @param {string} url - URL address.
  * @param {"<all>" | "intel.ingress.com" | "missions.ingress.com"} [domain="<all>"] domain - One or all domains related to Ingress.
  * @return {boolean}
  */
 export function check_url_match_pattern(url, domain) {
-    if (url.startsWith('/^')) {
-        url = url
-            .replace(/\/\^|\?/g, '')
-            .replace(/\\\//g, '/')
-            .replace(/\.\*/g, '*')
-            .replace(/\\\./g, '.');
-    }
-
-    if (
-        (/^(http|https|\*):\/\/(www|\*)\.ingress\.com\/mission*/.test(url) || /^(http|https|\*):\/\/missions\.ingress\.com\/*/.test(url)) &&
-        (domain === '<all>' || domain === 'missions.ingress.com')
-    ) {
-        return true;
-    }
-
-    if (
-        (/^(http|https|\*):\/\/(www\.|\*\.|\*|)ingress\.com(?!.*\/mission*)/.test(url) || /^(http|https|\*):\/\/intel\.ingress\.com*/.test(url)) &&
-        (domain === '<all>' || domain === 'intel.ingress.com')
-    ) {
-        return true;
-    }
-
-    return false;
+    return check_ingress_matching(url, domain);
 }
 
 /**
@@ -160,6 +141,7 @@ export function check_url_match_pattern(url, domain) {
  * Far from implementing all the features of userscripts {@link https://violentmonkey.github.io/api/matching/|@match/@include},
  * but sufficient for our needs.
  *
+ * @deprecated since version 1.5.0. Use {@link check_matching} instead.
  * @param {plugin} meta - Object with data from ==UserScript== header.
  * @param {"<all>" | "intel.ingress.com" | "missions.ingress.com"} [domain="<all>"] domain - One or all domains related to Ingress.
  * @return {boolean}
@@ -167,12 +149,12 @@ export function check_url_match_pattern(url, domain) {
 export function check_meta_match_pattern(meta, domain = '<all>') {
     if (meta.match && meta.match.length) {
         for (const url of meta.match) {
-            if (check_url_match_pattern(url, domain)) return true;
+            if (check_ingress_matching(url, domain)) return true;
         }
     }
     if (meta.include && meta.include.length) {
         for (const url of meta.include) {
-            if (check_url_match_pattern(url, domain)) return true;
+            if (check_ingress_matching(url, domain)) return true;
         }
     }
     return false;
