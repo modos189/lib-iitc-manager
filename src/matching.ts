@@ -123,6 +123,26 @@ function matchPath(rule: string, data: string): boolean {
 }
 
 /**
+ * Returns the list of browser URL patterns for which a plugin should be active.
+ * Plugins with no @match/@include are treated as matching all Ingress domains.
+ *
+ * @param plugin - Object with data from ==UserScript== header.
+ */
+export function getPluginMatches(plugin: PluginMeta): string[] {
+  let matches: string[] = [];
+  if (checkMatching(plugin, '<all_ingress>')) {
+    matches.push('https://intel.ingress.com/*');
+    matches.push('https://missions.ingress.com/*');
+  }
+  if (plugin.match) {
+    matches = matches.concat(plugin.match);
+  } else if (plugin.include) {
+    matches = matches.concat(plugin.include);
+  }
+  return matches;
+}
+
+/**
  * Collects all unique @match patterns from a dictionary of plugins.
  * Plugins without @match are skipped. Returns a sorted, deduplicated array.
  *

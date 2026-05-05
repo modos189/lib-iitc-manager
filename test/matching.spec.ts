@@ -1,7 +1,12 @@
 // Copyright (C) 2023-2026 IITC-CE - GPL-3.0 with Store Exception - see LICENSE and COPYING.STORE
 
 import { describe, it } from 'mocha';
-import { aggregateMatchPatterns, checkMatching, humanizeMatch } from '../src/matching.js';
+import {
+  aggregateMatchPatterns,
+  checkMatching,
+  getPluginMatches,
+  humanizeMatch,
+} from '../src/matching.js';
 import { expect } from 'chai';
 import type { PluginDict, PluginMeta } from '../src/types.js';
 
@@ -129,6 +134,34 @@ describe('<all_ingress>', function () {
     expect(checkMatching(script, 'https://intel.ingress.com/'), 'not match real url').to.be.false;
     expect(checkMatching(script, '<all_ingress>'), 'should match keyword `<all_ingress>`').to.be
       .true;
+  });
+});
+
+describe('getPluginMatches()', function () {
+  it('returns both Ingress URLs for plugin with no @match or @include', function () {
+    const plugin: PluginMeta = {};
+    expect(getPluginMatches(plugin)).to.deep.equal([
+      'https://intel.ingress.com/*',
+      'https://missions.ingress.com/*',
+    ]);
+  });
+
+  it('returns @match patterns without Ingress defaults', function () {
+    const plugin: PluginMeta = { match: ['https://example.com/*'] };
+    expect(getPluginMatches(plugin)).to.deep.equal(['https://example.com/*']);
+  });
+
+  it('returns @include patterns when @match is absent', function () {
+    const plugin: PluginMeta = { include: ['https://example.com/*'] };
+    expect(getPluginMatches(plugin)).to.deep.equal(['https://example.com/*']);
+  });
+
+  it('prefers @match over @include when both are present', function () {
+    const plugin: PluginMeta = {
+      match: ['https://intel.ingress.com/*'],
+      include: ['https://example.com/*'],
+    };
+    expect(getPluginMatches(plugin)).to.deep.equal(['https://intel.ingress.com/*']);
   });
 });
 

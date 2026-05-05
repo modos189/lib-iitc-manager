@@ -14,7 +14,7 @@ import {
   wait,
   clearWait,
 } from './helpers.js';
-import { checkMatching, humanizeMatch } from './matching.js';
+import { checkMatching, humanizeMatch, getPluginMatches } from './matching.js';
 import { base64ToStr, strToBase64 } from './base64.js';
 import { getGmApiCode } from './gm-api.js';
 import { wrapPluginCode, appendSourceUrl } from './wrapper.js';
@@ -35,6 +35,7 @@ export {
   clearWait,
   checkMatching,
   humanizeMatch,
+  getPluginMatches,
   base64ToStr,
   strToBase64,
   getGmApiCode,
